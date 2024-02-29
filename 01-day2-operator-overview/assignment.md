@@ -37,9 +37,9 @@ tabs:
 difficulty: ""
 timelimit: 600
 ---
-There are two ways to deploy Redpanda in Kubernetes: the operator and the helm chart. This track focused on operator-based deployments. One thing to keep in mind is that the operator actually uses the helm chart under the covers to perform some basic management tasks for Redpanda (so the two deployment methods are more similar than may think). For detailed information about running Redpanda in Kubernetes, see the [Redpanda documentation](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/kubernetes).
+There are two ways to deploy Redpanda in Kubernetes: the operator and the helm chart. This track focused on operator-based deployments. One thing to keep in mind is that the operator actually uses the helm chart under the covers to perform some basic management tasks for Redpanda (so the two deployment methods are more similar than you may think). For detailed information about running Redpanda in Kubernetes, see the [Redpanda documentation](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/kubernetes).
 
-This assignment (or challenge if you are familiar with Instruqt) is here to explain how this environment was configured and deployed. There are no required commands; instead you will be given commands to run that will verify the cluster and peripheral environment is in working order. Finally you will find notes on a few differences between this environment and an actual production cluster, and some steps you would want to perform in your production deployment that are otherwise not focused on in this track.
+This assignment (or challenge if you are familiar with Instruqt) is here to explain how this environment was configured and deployed. There are no required commands; instead you will be given commands to run that will verify the cluster and peripheral environment is in working order.
 
 Expand each section to view details, then click 'Next' at the bottom right once you have gone through all the content.
 
@@ -49,7 +49,7 @@ Tools
 The following tools are already installed in your environment:
 - `helm`: helps you define, install, and upgrade applications running on Kubernetes. Helm is used to deploy the the Redpanda operator.
 - `kubectl`: lets you deploy applications, inspect and manage cluster resources, and view logs in Kubernetes cluster.
-- `rpk`: lets you manage your entire Redpanda cluster without the need to run a separate script for each function, as with Apache Kafka. The `rpk` commands handle everything from configuring nodes and low-level tuning to high-level general Redpanda tasks.
+- `rpk`: lets you manage your entire Redpanda cluster without the need to run a separate script for each function, as with Apache Kafka. The `rpk` commands handle everything from configuring nodes and kernel tuning to acting as a client to produce and consume data.
 - `yq`: a lightweight and portable command-line YAML processor written in Go
 
 Kubernetes

@@ -10,7 +10,9 @@ description: |-
   In this tutorial, you learn how to manage Redpanda when deployed in Kubernetes with the Redpanda Operator.
 icon: https://res.cloudinary.com/practicaldev/image/fetch/s--W2NpA-Jj--/c_fill,f_auto,fl_progressive,h_320,q_auto,w_320/https://dev-to-uploads.s3.amazonaws.com/uploads/organization/profile_image/5327/ea54f4c7-abf0-46fc-a971-766b484ab9bd.png
 tags:
-- k8s,operator,day2ops
+- k8s
+- operator
+- day2ops
 owner: redpanda
 developers:
 - josh@redpanda.com
@@ -23,4 +25,4 @@ lab_config:
   extend_ttl: 300
   feedback_recap_enabled: true
   loadingMessages: true
-checksum: "2268084705615531224"
+checksum: "4399790338408648541"
