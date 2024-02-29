@@ -1,0 +1,34 @@
+version: "3"
+virtualmachines:
+- name: server
+  image: instruqt/k3s-v1-29-0
+  shell: /bin/bash
+  machine_type: n1-standard-1
+- name: worker1
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  shell: /bin/bash
+  machine_type: e2-standard-2
+- name: worker2
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: worker3
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: worker4
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: worker5
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: worker6
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: worker7
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: worker8
+  image: ubuntu-os-cloud/ubuntu-2204-lts
+  machine_type: e2-standard-2
+- name: docker
+  image: instruqt/docker-2010
+  machine_type: n1-standard-1

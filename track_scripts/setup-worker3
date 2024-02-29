@@ -1,0 +1,31 @@
+#!/bin/bash
+set -euxo pipefail
+
+HOSTNAME=worker3
+
+# Wait for the Instruqt host bootstrap to finish
+until [ -f /opt/instruqt/bootstrap/host-bootstrap-completed ]
+do
+    sleep 1
+done
+
+# Wait for the Kubernetes API server to become available
+#while ! curl --fail --output /dev/null http://server:8001/api
+while ! curl --fail http://server:8001/api
+do
+    echo "$HOSTNAME waiting for server"
+    sleep 1
+done
+
+# tune node
+snap install jq
+curl -sLO https://gist.githubusercontent.com/vuldin/0c8bf87f188ba1fe6854dac17ec9ff10/raw/redpanda-tune-k8s-node.sh
+chmod +x redpanda-tune-k8s-node.sh
+./redpanda-tune-k8s-node.sh
+
+# install k3s
+TOKEN=$(ssh -o StrictHostKeyChecking=no server cat /var/lib/rancher/k3s/server/node-token)
+VERSION=v1.28.6+k3s2
+curl -sfL https://get.k3s.io | K3S_URL=https://server:6443 K3S_TOKEN=$TOKEN INSTALL_K3S_VERSION=$VERSION sh -
+
+echo "$HOSTNAME connected to server"

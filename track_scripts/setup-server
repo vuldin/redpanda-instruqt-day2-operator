@@ -1,0 +1,77 @@
+#!/bin/bash
+set -euxo pipefail
+
+echo "Waiting for the Instruqt host bootstrap to finish..."
+until [ -f /opt/instruqt/bootstrap/host-bootstrap-completed ]
+do
+    sleep 1
+done
+
+echo "Waiting for the Kubernetes API server to become available..."
+while ! curl -s --fail --output /dev/null http://localhost:8001/api 
+do
+    sleep 1
+done
+
+# Enable bash completion for kubectl
+echo "source /usr/share/bash-completion/bash_completion" >> /root/.bashrc
+echo "complete -F __start_kubectl k" >> /root/.bashrc
+
+sudo apt update -y
+sudo apt install unzip
+snap install yq
+
+# Enable rpk
+curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip
+mkdir -p ~/.local/bin
+unzip rpk-linux-amd64.zip -d ~/.local/bin/
+export PATH="~/.local/bin:$PATH"
+echo export PATH="~/.local/bin:$PATH" >> ~/.bashrc
+source ~/.bashrc
+
+# Install Helm
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+alias helm=/usr/local/bin/helm
+
+# deploy and configure metallb
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+kubectl wait -n metallb-system --for=condition=ready pod --selector=app=metallb --timeout=90s
+cat <<EOF | kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: example
+  namespace: metallb-system
+spec:
+  addresses:
+  - 172.18.0.10-172.18.0.20
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: empty
+  namespace: metallb-system
+EOF
+
+# generate certs
+curl -sLO https://gist.githubusercontent.com/vuldin/e4b4a776df6dc0b4593302437ea57eed/raw/generate-certs.sh
+chmod +x generate-certs.sh
+./generate-certs.sh testdomain.local
+
+# create tls-external secret
+kubectl create ns redpanda
+kubectl create secret generic tls-external --from-file=ca.crt=certs/ca.crt --from-file=tls.crt=certs/node.crt --from-file=tls.key=certs/node.key --dry-run=client -o yaml > tls-external.yaml
+kubectl apply -f tls-external.yaml -n redpanda
+
+# SASL
+echo 'username:password:SCRAM-SHA-256' > superusers.txt
+kubectl create secret generic redpanda-superusers -n redpanda --from-file=superusers.txt
+
+# deploy operator
+kubectl kustomize "https://github.com/redpanda-data/redpanda-operator/src/go/k8s/config/crd?ref=v2.1.14-23.3.4" | kubectl apply -f -
+helm upgrade --install redpanda-controller operator --repo https://charts.redpanda.com -n redpanda --set image.tag=v2.1.14-23.3.4
+kubectl -n redpanda rollout status --watch deployment/redpanda-controller-operator
+
+# cleanup
+rm -rf certs private-ca-key tls-external.yaml rpk-linux-amd64.zip superusers.txt generate-certs.sh
+echo "setup complete"

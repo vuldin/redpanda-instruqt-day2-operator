@@ -1,0 +1,124 @@
+#!/bin/bash
+
+set -euxo pipefail
+
+echo alias k=kubectl >> ~/.bashrc
+source ~/.bashrc
+
+# create iotune configmap
+curl -sLO https://gist.githubusercontent.com/vuldin/9a6d3fffe6c3bc5fb0fec4345ab3ce6e/raw/bdaa997db235acbfb0c0cd55e86fb128b4997636/io-config.yaml
+sudo chown 101:101 io-config.yaml
+kubectl create configmap redpanda-io-config --namespace redpanda --from-file=io-config.yaml
+
+# taint/label initial nodes
+kubectl taint node worker1 redpanda-pool1=true:NoSchedule
+kubectl label node worker1 nodetype=redpanda-pool1
+kubectl taint node worker2 redpanda-pool1=true:NoSchedule
+kubectl label node worker2 nodetype=redpanda-pool1
+kubectl taint node worker3 redpanda-pool1=true:NoSchedule
+kubectl label node worker3 nodetype=redpanda-pool1
+kubectl taint node worker4 redpanda-pool2=true:NoSchedule
+kubectl label node worker4 nodetype=redpanda-pool2
+kubectl taint node worker5 redpanda-pool2=true:NoSchedule
+kubectl label node worker5 nodetype=redpanda-pool2
+kubectl taint node worker6 redpanda-pool2=true:NoSchedule
+kubectl label node worker6 nodetype=redpanda-pool2
+kubectl taint node worker7 redpanda-pool2=true:NoSchedule
+kubectl label node worker7 nodetype=redpanda-pool2
+
+# deploy redpanda
+cat <<EOF | kubectl -n redpanda apply -f -
+apiVersion: cluster.redpanda.com/v1alpha1
+kind: Redpanda
+metadata:
+  name: redpanda
+spec:
+  chartRef: {}
+  clusterSpec:
+    image:
+      tag: "v23.3.4"
+    tolerations:
+    - effect: NoSchedule
+      key: redpanda-pool1
+      operator: Equal
+      value: "true"
+    nodeSelector:
+      nodetype: redpanda-pool1
+    statefulset:
+      replicas: 3
+      extraVolumes: |-
+        - name: redpanda-io-config
+          configMap:
+            name: redpanda-io-config
+      extraVolumeMounts: |-
+        - name: redpanda-io-config
+          mountPath: /etc/redpanda-io-config
+      additionalRedpandaCmdFlags:
+      - "--io-properties-file=/etc/redpanda-io-config/io-config.yaml"
+    listeners:
+      admin:
+        tls:
+          enabled: false
+    tls:
+      certs:
+        default:
+          caEnabled: true
+          secretRef:
+            name: tls-external
+        external:
+          caEnabled: true
+          secretRef:
+            name: tls-external
+    auth:
+      sasl:
+        enabled: true
+        secretRef: redpanda-superusers
+    external:
+      domain: testdomain.local
+      type: LoadBalancer
+    storage:
+      persistentVolume:
+        enabled: true
+        size: 2Gi
+    console:
+      enabled: false
+EOF
+kubectl -n redpanda wait --for condition=established --timeout=60s crd/redpandas.cluster.redpanda.com
+
+# create rpk profile
+kubectl get secret -n redpanda tls-external -o go-template='{{ index .data "ca.crt" | base64decode }}' > ca.crt
+while ! kubectl get svc/lb-redpanda-0 -n redpanda -o yaml | yq '.status.loadBalancer.ingress[].ip' | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}"; do sleep 1; done
+while ! kubectl get svc/lb-redpanda-1 -n redpanda -o yaml | yq '.status.loadBalancer.ingress[].ip' | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}"; do sleep 1; done
+while ! kubectl get svc/lb-redpanda-2 -n redpanda -o yaml | yq '.status.loadBalancer.ingress[].ip' | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}"; do sleep 1; done
+rpk profile create --from-profile <(kubectl get configmap -n redpanda redpanda-rpk -o go-template='{{ .data.profile }}') operator
+rpk profile set kafka_api.sasl.user=username kafka_api.sasl.password=password kafka_api.sasl.mechanism=SCRAM-SHA-256
+echo `kubectl get svc/lb-redpanda-0 -n redpanda -o yaml | yq '.status.loadBalancer.ingress[].ip'` redpanda-0.testdomain.local | sudo tee -a /etc/hosts
+echo `kubectl get svc/lb-redpanda-1 -n redpanda -o yaml | yq '.status.loadBalancer.ingress[].ip'` redpanda-1.testdomain.local | sudo tee -a /etc/hosts
+echo `kubectl get svc/lb-redpanda-2 -n redpanda -o yaml | yq '.status.loadBalancer.ingress[].ip'` redpanda-2.testdomain.local | sudo tee -a /etc/hosts
+
+# deploy prometheus
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+curl -sLO https://gist.githubusercontent.com/vuldin/9e0ed0724eff56dd194e500f92a2dc77/raw/b419373b4f27e9eed5d5809206286a48f3a3e4c5/values-prometheus.yaml
+helm install prometheus prometheus-community/prometheus -n prometheus --create-namespace -f values-prometheus.yaml
+kubectl -n prometheus rollout status -w deployment/prometheus-server
+kubectl expose deployment prometheus-server --type=LoadBalancer --name=prometheus-external -n prometheus
+
+# deploy grafana
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+curl -sLO https://gist.githubusercontent.com/vuldin/e579c4ffca46db95d6209391d943862f/raw/f25fb66ab3ce7236b71ff5c99f8f5cf34e399b3c/values-grafana.yaml
+helm install grafana grafana/grafana -n grafana --create-namespace -f values-grafana.yaml
+kubectl -n grafana rollout status -w deployment/grafana
+kubectl expose deployment grafana --type=LoadBalancer --name=grafana-external -n grafana
+
+# create topics
+rpk topic create log1 -p 3 -r 3
+rpk topic create log2 -p 3 -r 3
+rpk topic create log3 -p 3 -r 3
+rpk topic create log4 -p 3 -r 3
+rpk topic create log5 -p 3 -r 3
+
+# get client scripts
+curl -sLO https://gist.githubusercontent.com/vuldin/ac7b5fe2ea841b1fa162dde86e6dca75/raw/185b56f47804297015c5a2ab8183512ebd7b9673/produce.sh
+chmod +x produce.sh

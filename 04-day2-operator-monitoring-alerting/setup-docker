@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# install rpk
+sudo apt-get update
+sudo apt-get install unzip -y
+sudo apt-get install vim -y
+sudo apt-get install --reinstall bash-completion
+
+# install rpk
+curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip
+unzip rpk-linux-amd64.zip -d /usr/local/bin/
+rm rpk-linux-amd64.zip
+
+# install yq
+wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+
+# install jq
+wget https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux32 -O /usr/bin/jq && chmod +x /usr/bin/jq
+
+git clone https://github.com/redpanda-data-university/instruqt-public-day2ops.git
+chmod 777 -R /root/instruqt-public-day2ops/03-monitoring-and-alert
+cd /root/instruqt-public-day2ops/03-monitoring-and-alert
+
+docker-compose -f docker-compose.yml -f compose.grafana.yaml up -d
+rpk topic create log -p 3
+
+#./generate-data.sh &
+export ALERT_DEFINITIONS_YAML_FILE_LOCATION=./config/alert-definitions.yml
+export GRAFANA_ALERTS_YAML_FILE_LOCATION=./config/grafana/provisioning/alerting/alerts.yml
+export PROMETHEUS_ALERTS_YAML_FILE_LOCATION=./config/prometheus/alert-rules.yml
