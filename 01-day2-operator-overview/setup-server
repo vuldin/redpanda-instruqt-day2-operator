@@ -27,62 +27,8 @@ kubectl taint node worker7 redpanda-pool2=true:NoSchedule
 kubectl label node worker7 nodetype=redpanda-pool2
 
 # deploy redpanda
-cat <<EOF | kubectl -n redpanda apply -f -
-apiVersion: cluster.redpanda.com/v1alpha1
-kind: Redpanda
-metadata:
-  name: redpanda
-spec:
-  chartRef: {}
-  clusterSpec:
-    image:
-      tag: "v23.3.4"
-    tolerations:
-    - effect: NoSchedule
-      key: redpanda-pool1
-      operator: Equal
-      value: "true"
-    nodeSelector:
-      nodetype: redpanda-pool1
-    statefulset:
-      replicas: 3
-      extraVolumes: |-
-        - name: redpanda-io-config
-          configMap:
-            name: redpanda-io-config
-      extraVolumeMounts: |-
-        - name: redpanda-io-config
-          mountPath: /etc/redpanda-io-config
-      additionalRedpandaCmdFlags:
-      - "--io-properties-file=/etc/redpanda-io-config/io-config.yaml"
-    listeners:
-      admin:
-        tls:
-          enabled: false
-    tls:
-      certs:
-        default:
-          caEnabled: true
-          secretRef:
-            name: tls-external
-        external:
-          caEnabled: true
-          secretRef:
-            name: tls-external
-    auth:
-      sasl:
-        enabled: true
-        secretRef: redpanda-superusers
-    external:
-      domain: testdomain.local
-      type: LoadBalancer
-    storage:
-      persistentVolume:
-        enabled: true
-        size: 2Gi
-    console:
-      enabled: false
-EOF
+curl -sLO https://gist.githubusercontent.com/vuldin/31ab8a3fb0a1cd7f871fd846991fb6d0/raw/4f2d72173976d3e05cbb991211e949b1da63d5e2/operator-config.yaml
+kubectl -n redpanda apply -f operator-config.yaml
 kubectl -n redpanda wait --for condition=established --timeout=60s crd/redpandas.cluster.redpanda.com
 
 # create rpk profile
@@ -122,3 +68,4 @@ rpk topic create log5 -p 3 -r 3
 # get client scripts
 curl -sLO https://gist.githubusercontent.com/vuldin/ac7b5fe2ea841b1fa162dde86e6dca75/raw/185b56f47804297015c5a2ab8183512ebd7b9673/produce.sh
 chmod +x produce.sh
+

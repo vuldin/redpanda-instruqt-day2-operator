@@ -147,6 +147,50 @@ NAME       READY   STATUS
 redpanda   True    Redpanda reconciliation succeeded
 ```
 
+## Helm
+
+Two different helm charts are used when deploying Redpanda with the operator:
+
+1. The operator chart deploys the operator (this is also called the `redpanda-controller` chart)
+2. The operator uses the Redpanda chart internally to handle some tasks related to managing Redpanda. See [this link](https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/kubernetes/k-deployment-overview/#helm-and-redpanda-operator) for more details on how the operator makes use of the helm chart.
+
+It is important to pin the versions of both charts (along with Redpanda itself) in order to ensure compatibility between these components over time. Below are the locations where each of these components are pinned in code:
+
+| Component name | link |
+| - | - |
+| Redpanda | [link](https://gist.github.com/vuldin/31ab8a3fb0a1cd7f871fd846991fb6d0#file-operator-config-yaml-L10) |
+| Operator chart | [link](https://gist.github.com/vuldin/31ab8a3fb0a1cd7f871fd846991fb6d0#file-operator-config-yaml-L7) |
+| Redpanda chart | [link](https://github.com/vuldin/redpanda-instruqt-day2-operator/blob/main/track_scripts/setup-server#L72) |
+
+To verify the chart versions used within this environment:
+
+```bash,run
+helm list -n redpanda
+```
+
+Output:
+
+```bash,nocopy
+NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+redpanda                redpanda        1               2024-05-30 00:05:11.259705923 +0000 UTC deployed        redpanda-5.7.36 v23.3.10
+redpanda-controller     redpanda        1               2024-05-29 23:59:15.630077974 +0000 UTC deployed        operator-0.4.24 v2.1.20-24.1.2
+```
+
+The version of the two charts are shown in the "CHART" column.
+
+You can also verify the state of the internal helm release that the operator uses to interface with the Redpanda deployment:
+
+```bash,run
+kubectl get helmrelease -n redpanda
+```
+
+Output should be similar to the following:
+
+```bash,nocopy
+NAME       AGE   READY   STATUS
+redpanda   24m   True    Helm install succeeded for release redpanda/redpanda.v1 with chart redpanda@5.7.36
+```
+
 Security
 ===============
 

@@ -63,27 +63,18 @@ NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
 It may take time for the Redpanda resource to complete this rolling upgrade. You can verify the status by running this command:
 
 ```bash,run
-kubectl get redpanda redpanda -n redpanda -o yaml  -o jsonpath={.status} | jq
+kubectl get redpanda redpanda -n redpanda -o yaml  -o jsonpath={.status.conditions[0]} | jq
 ```
 
 Eventually you will get this output similar to the following:
 
 ```bash,nocopy
 {
-  "conditions": [
-    {
-      "lastTransitionTime": "2024-03-11T23:36:47Z",
-      "message": "Redpanda reconciliation succeeded",
-      "reason": "RedpandaClusterDeployed",
-      "status": "True",
-      "type": "Ready"
-    }
-  ],
-  "helmRelease": "redpanda",
-  "helmReleaseReady": true,
-  "helmRepository": "redpanda-repository",
-  "helmRepositoryReady": true,
-  "observedGeneration": 4
+  "lastTransitionTime": "2024-03-11T23:36:47Z",
+  "message": "Redpanda reconciliation succeeded",
+  "reason": "RedpandaClusterDeployed",
+  "status": "True",
+  "type": "Ready"
 }
 ```
 
