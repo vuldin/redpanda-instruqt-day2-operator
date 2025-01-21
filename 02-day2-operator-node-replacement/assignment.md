@@ -12,11 +12,13 @@ notes:
 
     ![skate.png](../assets/skate.png)
 tabs:
-- title: Shell
+- id: 156pxx5na22q
+  title: Shell
   type: terminal
   hostname: server
 difficulty: ""
 timelimit: 600
+enhanced_loading: null
 ---
 This scenario focuses on replacing Kubernetes nodes under a running Redpanda cluster. This process involves configuring taints/tolerations on the replacement nodes, updating the operator and StatefulSet, setting up an additional broker to ensure replica factor is maintained throughout the process, and then deleting/decommissioning the original pods while managing the PersistentVolumes.
 
@@ -197,6 +199,19 @@ Output will eventually say:
 Node 2 is decommissioned successfully.
 ```
 
+> Note: The command above may return something similar to the following output:
+>
+> ```bash,nocopy
+> DECOMMISSION PROGRESS
+> =====================
+> NAMESPACE-TOPIC  PARTITION  MOVING-TO  COMPLETION-%  PARTITION-SIZE
+> kafka/log1       1          6          0             150093
+> kafka/log3       2          6          0             151280
+> kafka/log4       0          5          0             7937
+> ```
+>
+> This would mean the decommission process is still progressing. Re-run the commission status command until you see the expected output above.
+
 Now we can delete the PersistentVolumeClaim and then the pod associated with this broker:
 
 ```bash,run
@@ -222,6 +237,8 @@ The output will eventually say:
 ```bash,nocopy
 pod "redpanda-2" deleted
 ```
+
+> Note: Deleting a pod can take around 45 seconds depending on your environment.
 
 Deleting the PVC and pod for redpanda-2 will allow the StatefulSet to create a new pod as redpanda-2 located on one of the replacement nodes. Check that this new pod is on one of the new Kubernetes nodes:
 

@@ -17,25 +17,30 @@ notes:
 
     ![skate.png](../assets/skate.png)
 tabs:
-- title: Shell
+- id: endesrqhzs26
+  title: Shell
   type: terminal
   hostname: server
-- title: Prometheus
+- id: s3lvuzo38s82
+  title: Prometheus
   type: service
   hostname: server
   path: /
   port: 9090
-- title: Grafana
+- id: jtzoxibj06ju
+  title: Grafana
   type: service
   hostname: server
   path: /
   port: 3000
-- title: Producer
+- id: dirqfiicjt00
+  title: Producer
   type: terminal
   hostname: server
   cmd: ./produce.sh
 difficulty: ""
 timelimit: 600
+enhanced_loading: null
 ---
 There are two ways to deploy Redpanda in Kubernetes: the operator and the helm chart. This track focused on operator-based deployments. One thing to keep in mind is that the operator actually uses the helm chart under the covers to perform some basic management tasks for Redpanda (so the two deployment methods are more similar than you may think). For detailed information about running Redpanda in Kubernetes, see the [Redpanda documentation](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/kubernetes).
 
@@ -159,8 +164,8 @@ It is important to pin the versions of both charts (along with Redpanda itself) 
 | Component name | link |
 | - | - |
 | Redpanda | [link](https://gist.github.com/vuldin/31ab8a3fb0a1cd7f871fd846991fb6d0#file-operator-config-yaml-L10) |
-| Operator chart | [link](https://gist.github.com/vuldin/31ab8a3fb0a1cd7f871fd846991fb6d0#file-operator-config-yaml-L7) |
-| Redpanda chart | [link](https://github.com/vuldin/redpanda-instruqt-day2-operator/blob/main/track_scripts/setup-server#L72) |
+| Operator chart | [link](https://github.com/vuldin/redpanda-instruqt-day2-operator/blob/main/track_scripts/setup-server#L72) |
+| Redpanda chart | [link](https://gist.github.com/vuldin/31ab8a3fb0a1cd7f871fd846991fb6d0#file-operator-config-yaml-L7) |
 
 To verify the chart versions used within this environment:
 

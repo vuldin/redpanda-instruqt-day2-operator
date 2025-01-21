@@ -21,29 +21,35 @@ notes:
     - Owl Shop, an e-commerce simulation
     Click Start once you see that this process has completed .
 tabs:
-- title: Terminal
+- id: xgjykhxijhly
+  title: Terminal
   type: terminal
   hostname: docker
   workdir: /root/instruqt-public-day2ops/03-monitoring-and-alert
-- title: Prometheus
+- id: t7rk6o275w28
+  title: Prometheus
   type: service
   hostname: docker
   port: 9090
-- title: Inbox
+- id: alr6jqv5xfm2
+  title: Inbox
   type: service
   hostname: docker
   port: 8025
-- title: Grafana
+- id: ywkyt25zsxd9
+  title: Grafana
   type: service
   hostname: docker
   path: /alerting/list
   port: 3000
-- title: Grafana Notification
+- id: v1zhgt4poi3j
+  title: Grafana Notification
   type: service
   hostname: docker
   path: /alerting/notifications
   port: 3000
 difficulty: ""
+enhanced_loading: null
 ---
 ## Verify connectivity to Redpanda
 
