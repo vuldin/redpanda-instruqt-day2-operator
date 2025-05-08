@@ -12,7 +12,7 @@ echo 'DOCKER_OPTS="${DOCKER_OPTS} --registry-mirror=https://mirror.gcr.io"' >> /
 sudo service docker restart
 
 # install rpk
-curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip
+curl -LO https://github.com/redpanda-data/redpanda/releases/download/v24.2.7/rpk-linux-amd64.zip
 unzip rpk-linux-amd64.zip -d /usr/local/bin/
 rm rpk-linux-amd64.zip
 
@@ -22,7 +22,7 @@ wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O 
 # install jq
 wget https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux32 -O /usr/bin/jq && chmod +x /usr/bin/jq
 
-git clone https://github.com/redpanda-data-university/instruqt-public-day2ops.git
+git clone https://github.com/vuldin/instruqt-public-day2ops.git
 chmod 777 -R /root/instruqt-public-day2ops/03-monitoring-and-alert
 cd /root/instruqt-public-day2ops/03-monitoring-and-alert
 
