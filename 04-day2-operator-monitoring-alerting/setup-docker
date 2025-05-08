@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# install rpk
+# install dependencies
 sudo apt-get update
 sudo apt-get install unzip -y
 sudo apt-get install vim -y
 sudo apt-get install --reinstall bash-completion
+
+# use container mirror
+echo '{"registry-mirrors": ["https://mirror.gcr.io"]}' > /etc/docker/daemon.json
+echo 'DOCKER_OPTS="${DOCKER_OPTS} --registry-mirror=https://mirror.gcr.io"' >> /etc/default/docker
+sudo service docker restart
 
 # install rpk
 curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip
