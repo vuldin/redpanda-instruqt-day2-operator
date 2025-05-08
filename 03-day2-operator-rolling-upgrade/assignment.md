@@ -67,7 +67,7 @@ The target versions for this upgrade process are the following:
 
 > Note: The version used above are likely different than the latest, but we are pinning to specific version to ensure future users don't run into any unforseen issues. In your environment you will likely want to target upgrading to the latest available version
 
-Since we are currently on Redpanda 23.3.4, we will proceed with the upgrade order above, upgrading each component and finishing with upgrading Redpanda itself. But we will upgrade Redpanda two times: first to the latest 24.1 (24.1.17 at this time) and last to the latest 24.2 (24.2.7 at this time).
+Since we are currently on Redpanda 23.3.4, we will proceed with the upgrade order above, upgrading each component and finishing with upgrading Redpanda itself. But we will upgrade Redpanda two times: first to the latest 24.1 (24.1.19 at this time) and last to the latest 24.2 (24.2.7 at this time).
 
 ## Update CRDs
 
@@ -102,7 +102,7 @@ spec:
     chartVersion: 5.9.9
   clusterSpec:
     image:
-      tag: "v24.1.7"
+      tag: "v24.1.19"
 EOF
 ```
 
@@ -128,9 +128,9 @@ Eventually the output will be similar the following:
 
 ```bash,nocopy
 NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
-4        1          active             true      v24.1.7 - 2c0d4bcfb15f814433713fc7be2586b37c4fda06
-5        1          active             true      v24.1.7 - 2c0d4bcfb15f814433713fc7be2586b37c4fda06
-6        1          active             true      v24.1.7 - 2c0d4bcfb15f814433713fc7be2586b37c4fda06
+4        1          active             true      v24.1.19 - e7b76b06dc623a5290e107f3df804b3d88f4f626
+5        1          active             true      v24.1.19 - e7b76b06dc623a5290e107f3df804b3d88f4f626
+6        1          active             true      v24.1.19 - e7b76b06dc623a5290e107f3df804b3d88f4f626
 ```
 
 It may take time for the Redpanda resource to complete this rolling upgrade. You can verify the status by running this command:
@@ -167,7 +167,7 @@ Expected output:
 
 ## Last Redpanda update
 
-Now we can update from Redpanda 24.1.17 to 24.2.7. Follow the same steps as above (only this time we don't need to include the Redpanda chart version since it is already updated):
+Now we can update from Redpanda 24.1.19 to 24.2.7. Follow the same steps as above (only this time we don't need to include the Redpanda chart version since it is already updated):
 
 ```bash,run
 cat <<EOF > patch.yaml
@@ -199,10 +199,10 @@ rpk redpanda admin brokers list
 Eventually the output will be similar the following:
 
 ```bash,nocopy
-ID    HOST                                             PORT   RACK  CORES  MEMBERSHIP  IS-ALIVE  VERSION  UUID
-0     redpanda-0.redpanda.redpanda.svc.cluster.local.  33145  -     1      active      true      24.2.7   46b73a70-94c0-4e08-873a-b2ff5b4cb69a
-1     redpanda-1.redpanda.redpanda.svc.cluster.local.  33145  -     1      active      true      24.2.7   a28c74f7-2395-4c4b-92fd-bd56a16aef9d
-2     redpanda-2.redpanda.redpanda.svc.cluster.local.  33145  -     1      active      true      24.2.7   14ef9ec1-4766-40f0-b560-3b9d0cb19167
+NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
+4        1          active             true      v24.2.7 - 512ef3edd2d906ddb4f6f68fc3436bbc103ba800
+5        1          active             true      v24.2.7 - 512ef3edd2d906ddb4f6f68fc3436bbc103ba800
+6        1          active             true      v24.2.7 - 512ef3edd2d906ddb4f6f68fc3436bbc103ba800
 ```
 
 This challenge is now complete. Click 'Next' in the bottom right to continue to the next assignment.
